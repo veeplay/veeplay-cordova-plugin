@@ -1,0 +1,1 @@
+veeplay-cordova-plugin
