@@ -1,0 +1,15 @@
+repositories{    
+  jcenter()
+  maven { url "https://s3-eu-west-1.amazonaws.com/android.veeplay.com/releases" }
+}
+
+dependencies {
+   compile('com.veeplay:veeplay-player-android:2.1.8')
+}
+
+android {
+  packagingOptions {
+    exclude 'META-INF/NOTICE'
+    exclude 'META-INF/LICENSE'
+  }
+}
