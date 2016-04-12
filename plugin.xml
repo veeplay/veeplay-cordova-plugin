@@ -2,13 +2,13 @@
 	<plugin 
 		xmlns="http://apache.org/cordova/ns/plugins/1.0" 
 		xmlns:android="http://schemas.android.com/apk/res/android"
-		id="com.veeplay.cordova" 
+		id="veeplay-cordova-plugin" 
 		version="1.0.0">
 
 	<name>veeplay-cordova-plugin</name>
 	<js-module name="veeplay-cordova-plugin" 
 		src="www/veeplay-cordova-plugin.js">
-		<clobbers target="cordova.plugins.veeplay-cordova-plugin" />
+		<clobbers target="veeplay" />
 	</js-module>
 
 	<platform name="android">
@@ -19,7 +19,7 @@
 			target="res/xml/config.xml">
 
 			<feature name="veeplay-cordova-plugin">
-				<param name="android-package" value="com.veeplay.cordova.veeplay-cordova-plugin" />
+				<param name="android-package" value="com.veeplay.cordova.VeeplayCordovaPlugin" />
 			</feature>
 		</config-file>
 
@@ -28,7 +28,7 @@
 			target="AndroidManifest.xml">
 		</config-file>
 		<source-file 
-			src="src/android/veeplay-cordova-plugin.java" 
-			target-dir="src/com/veeplay/cordova/veeplay-cordova-plugin" />
+			src="src/android/VeeplayCordovaPlugin.java" 
+			target-dir="src/com/veeplay/cordova/" />
 		</platform>
 	</plugin>
