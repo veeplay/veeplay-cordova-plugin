@@ -14,19 +14,25 @@ exports.fullscreenPlayFromUrl = function(jsonUrl, success, error) {
 };
 
 exports.fullscreenPlayFromObject = function(arg0, success, error) {
-    exec(success, error, "veeplay-cordova-plugin", "fullscreenPlayFromObject", [arg0]);
+    exec(success, error, "veeplay-cordova-plugin", "fullscreenPlayFromObject", [JSON.stringify(arg0)]);
 };
 
 exports.playFromUrl = function(arg0, success, error) {
+    internalBridgeCall("stopBoundingTimer");
     window.veeplay.timerId = setInterval(window.veeplay.getBounds, 20);
-    console.log("Timer:  "+window.veeplay.timerId);
+    console.log("Added bounded timer with id:  "+window.veeplay.timerId);
     var rect = document.getElementById(window.veeplay.playerId).getBoundingClientRect();
     exec(success, error, "veeplay-cordova-plugin", "playFromUrl", [arg0, rect.top, rect.right, rect.bottom, rect.left]);
     exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge");
 };
 
 exports.playFromObject = function(arg0, success, error) {
-    exec(success, error, "veeplay-cordova-plugin", "playFromObject", [arg0]);
+    internalBridgeCall("stopBoundingTimer");
+    window.veeplay.timerId = setInterval(window.veeplay.getBounds, 20);
+    console.log("Added bounded timer with id:  "+window.veeplay.timerId);
+    var rect = document.getElementById(window.veeplay.playerId).getBoundingClientRect();
+    exec(success, error, "veeplay-cordova-plugin", "playFromObject", [JSON.stringify(arg0), rect.top, rect.right, rect.bottom, rect.left]);
+    exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge");
 };
 
 exports.stop = function(success, error) {
@@ -42,9 +48,46 @@ exports.resume = function(success, error) {
     exec(success, error, "veeplay-cordova-plugin", "resume", []);
 };
 
+exports.getDuration = function(success, error) {
+	exec(success, error, "veeplay-cordova-plugin", "duration", []);
+};
+
+exports.getBufferedTime = function(success, error) {
+	exec(success, error, "veeplay-cordova-plugin", "bufferedTime", []);
+};
+
+exports.toggleFullscreen = function(success, error) {
+	exec(success, error, "veeplay-cordova-plugin", "toggleFullscreen", []);
+};
+
+exports.mute = function(success, error) {
+	exec(success, error, "veeplay-cordova-plugin", "mute", []);
+};
+
+exports.unMute = function(success, error) {
+	exec(success, error, "veeplay-cordova-plugin", "unMute", []);
+};
+
+exports.isPlaying = function(success, error) {
+	exec(success, error, "veeplay-cordova-plugin", "isPlaying", []);
+};
+
+exports.isSeeking = function(success, error) {
+	exec(success, error, "veeplay-cordova-plugin", "isSeeking", []);
+};
+
+exports.skip = function(success, error) {
+	exec(success, error, "veeplay-cordova-plugin", "skip", []);
+};
+
+exports.back = function(success, error) {
+	exec(success, error, "veeplay-cordova-plugin", "back", []);
+};
+
 function internalBridgeCall(result) {
-    if(result == "stopBoundingTimer") {
+    if(result == "stopBoundingTimer" && window.veeplay.timerId != 0) {
         console.log("Stopping bounding timers");
         clearInterval(window.veeplay.timerId);
+        window.veeplay.timerId = 0;
     }
 }

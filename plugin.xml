@@ -24,8 +24,12 @@
 		</config-file>
 
 		<config-file 
-			parent="/*" 
+			parent="/manifest/application" 
 			target="AndroidManifest.xml">
+			<activity
+			android:name="com.appscend.utilities.WebBrowser"
+			android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize">
+			</activity>
 		</config-file>
 		<source-file 
 			src="src/android/VeeplayCordovaPlugin.java" 

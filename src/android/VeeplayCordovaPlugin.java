@@ -37,7 +37,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     private CallbackContext internalBridgeContext;
     ViewGroup cordovaParent;
     RelativeLayout playerContainer;
-    private int topOffset = 130;
+    private int topOffset = 0;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -59,12 +59,25 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             this.fullscreenPlayFromObject(message, callbackContext);
             return true;
         } else if (action.equals("playFromUrl")) {
-            String message = args.getString(0);
-            play(message, args.getInt(1), args.getInt(4), 225, 120, callbackContext);
+            int topBound = args.getInt(1);
+            int rightBound = args.getInt(2);
+            int bottomBound = args.getInt(3);
+            int leftBound = args.getInt(4);
+            int width = rightBound-leftBound;
+            int height = bottomBound-topBound;
+            String jsonUrl = args.getString(0);
+            playFromJsonUrl(jsonUrl, topBound, leftBound, width, height, callbackContext);
             return true;
-        } else //noinspection StatementWithEmptyBody
-            if (action.equals("playFromObject")) {
-            //TODO add support
+        } else if (action.equals("playFromObject")) {
+            int topBound = args.getInt(1);
+            int rightBound = args.getInt(2);
+            int bottomBound = args.getInt(3);
+            int leftBound = args.getInt(4);
+            int width = rightBound-leftBound;
+            int height = bottomBound-topBound;
+            String jsonData = args.getString(0);
+            playFromJsonData(jsonData, topBound, leftBound, width, height, callbackContext);
+            return true;
         } else if (action.equals("stop")) {
             cordova.getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -99,14 +112,55 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         } else if(action.equals("bindInternalBridge")) {
             internalBridgeContext = callbackContext;
             return true;
+        } else if(action.equals("isPlaying")) {
+            eventsCallbackContext.success(""+APSMediaPlayer.getInstance().isPlaying());
+            return true;
+        } else if(action.equals("isSeeking")) {
+            eventsCallbackContext.success(""+APSMediaPlayer.getInstance().isSeeking());
+            return true;
+        } else if(action.equals("skip")) {
+            APSMediaPlayer.getInstance().skip();
+            eventsCallbackContext.success("true");
+            return true;
+        } else if(action.equals("back")) {
+            APSMediaPlayer.getInstance().back();
+            eventsCallbackContext.success("true");
+            return true;
+        } else if(action.equals("mute")) {
+            APSMediaPlayer.getInstance().setMute(true);
+            eventsCallbackContext.success("true");
+            return true;
+        } else if(action.equals("unmute")) {
+            APSMediaPlayer.getInstance().setMute(false);
+            eventsCallbackContext.success("ok");
+            return true;
+        } else if(action.equals("duration")) {
+            int duration = APSMediaPlayer.getInstance().duration();
+            if(duration==0) {
+                eventsCallbackContext.error(0);
+            } else {
+                eventsCallbackContext.success(""+duration);
+            }
+            return true;
+        } else if(action.equals("bufferedTime")) {
+            int bufferedTime = APSMediaPlayer.getInstance().playableDuration(APSMediaPlayer.getInstance().duration());
+            if(bufferedTime==0) {
+                eventsCallbackContext.error(0);
+            } else {
+                eventsCallbackContext.success(""+bufferedTime);
+            }
+            return true;
+        } else if(action.equals("toggleFullscreen")) {
+            APSMediaPlayer.getInstance().toggleFullscreen();
+            eventsCallbackContext.success("true");
+            return true;
         }
-
         return false;
     }
 
     private void fullscreenPlayFromUrl(final String message, final CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
-            Log.d("CordovaVeeplay", "Starting up");
+            Log.d("CordovaVeeplay", "Loading dialog window");
             cordova.getThreadPool().submit(new Runnable() {
                 @Override
                 public void run() {
@@ -131,7 +185,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
 
     private void fullscreenPlayFromObject(final String message, final CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
-            Log.d("CordovaVeeplay", "Starting up");
+            Log.d("CordovaVeeplay", "Loading dialog window");
             cordova.getThreadPool().submit(new Runnable() {
                 @Override
                 public void run() {
@@ -146,43 +200,21 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         }
     }
 
-    private void play(final String message, final int top, final int left, final int width, final int height, final CallbackContext callbackContext) {
+    private void playFromJsonUrl(final String jsonUrl, final int top, final int left, final int width, final int height, final CallbackContext callbackContext) {
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-                params.leftMargin = VPUtilities.pixelsToDip(left, cordova.getActivity());
-                params.topMargin = VPUtilities.pixelsToDip(top, cordova.getActivity());
-                topOffset = VPUtilities.pixelsToDip(top, cordova.getActivity());
-                params.width = VPUtilities.pixelsToDip(width, cordova.getActivity());
-                params.height = VPUtilities.pixelsToDip(height, cordova.getActivity());
-                playerContainer.setLayoutParams(params);
-                cordovaParent.addView(playerContainer);
-
                 eventsCallbackContext = callbackContext;
 
-                APSMediaPlayer.getInstance().finish();
-                APSMediaPlayer.getInstance().init(cordova.getActivity(), true);
-                APSMediaPlayer.getInstance().removeAllTrackingEventListeners();
-                APSMediaPlayer.getInstance().addTrackingEventListener(VeeplayCordovaPlugin.this);
-
-                //obtain a reference to the main player view
-                ViewGroup veeplayViews = APSMediaPlayer.getInstance().viewController();
-
-                //check if the player was previously attached somewhere else
-                if(veeplayViews.getParent() != null) {
-                    ((ViewGroup)veeplayViews.getParent()).removeView(veeplayViews);
-                }
-                playerContainer.addView(veeplayViews);
-                APSMediaPlayer.getInstance().showHud();
+                addPlayerContainer(top, left, width, height);
+                initVeeplay(playerContainer);
 
                 cordova.getThreadPool().submit(new Runnable() {
                     @Override
                     public void run() {
                         APSMediaBuilder builder = new APSMediaBuilder();
                         try {
-                            builder.configureFromURL(new URL(message));
+                            builder.configureFromURL(new URL(jsonUrl));
                         }
                         catch (MalformedURLException e) {
                             e.printStackTrace();
@@ -197,7 +229,26 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
                 callbackContext.sendPluginResult(pluginResult);
             }
         });
+    }
 
+    private void playFromJsonData(final String jsonData, final int top, final int left, final int width, final int height, final CallbackContext callbackContext) {
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                eventsCallbackContext = callbackContext;
+
+                addPlayerContainer(top, left, width, height);
+                initVeeplay(playerContainer);
+
+                APSMediaBuilder builder = new APSMediaBuilder();
+                builder.configureFromData(jsonData);
+                APSMediaPlayer.getInstance().playMediaUnits(builder.mediaUnits());
+
+                PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
+                pluginResult.setKeepCallback(true);
+                callbackContext.sendPluginResult(pluginResult);
+            }
+        });
     }
 
     private void fullscreenPlay(final APSMediaBuilder builder) {
@@ -213,22 +264,11 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
 
                 RelativeLayout mPlayerContainer = new RelativeLayout(cordova.getActivity().getApplicationContext());
                 fullscreenPlayerDialog.setContentView(mPlayerContainer);
-                mPlayerContainer.setBackgroundColor(Color.parseColor("#cc2288"));
+                mPlayerContainer.setBackgroundColor(Color.BLACK);
                 fullscreenPlayerDialog.show();
 
-                APSMediaPlayer.getInstance().finish();
-                APSMediaPlayer.getInstance().init(cordova.getActivity(), true);
-                APSMediaPlayer.getInstance().removeAllTrackingEventListeners();
-                APSMediaPlayer.getInstance().addTrackingEventListener(VeeplayCordovaPlugin.this);
+                initVeeplay(mPlayerContainer);
 
-                //obtain a reference to the main player view
-                ViewGroup veeplayViews = APSMediaPlayer.getInstance().viewController();
-
-                //check if the player was previously attached somewhere else
-                if(veeplayViews.getParent() != null) {
-                    ((ViewGroup)veeplayViews.getParent()).removeView(veeplayViews);
-                }
-                mPlayerContainer.addView(veeplayViews);
                 APSMediaPlayer.getInstance().showHud();
                 APSMediaPlayer.getInstance().playMediaUnits(builder.mediaUnits());
 
@@ -263,5 +303,37 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             eventsCallbackContext.sendPluginResult(pluginResult);
         }
 //        eventsCallbackContext.success(mediaEventType.toString());
+    }
+
+    private void addPlayerContainer(int top, int left, int width, int height) {
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        params.leftMargin = VPUtilities.pixelsToDip(left, cordova.getActivity());
+        params.topMargin = VPUtilities.pixelsToDip(top, cordova.getActivity());
+        topOffset = VPUtilities.pixelsToDip(top, cordova.getActivity());
+        params.width = VPUtilities.pixelsToDip(width, cordova.getActivity());
+        params.height = VPUtilities.pixelsToDip(height, cordova.getActivity());
+        playerContainer.setLayoutParams(params);
+        if(playerContainer.getParent()!=null) {
+            ((ViewGroup)playerContainer.getParent()).removeView(playerContainer);
+        }
+        cordovaParent.addView(playerContainer);
+    }
+
+    private void initVeeplay(ViewGroup playerParent) {
+        APSMediaPlayer.getInstance().finish();
+        APSMediaPlayer.getInstance().init(cordova.getActivity(), true);
+        APSMediaPlayer.getInstance().removeAllTrackingEventListeners();
+        APSMediaPlayer.getInstance().addTrackingEventListener(VeeplayCordovaPlugin.this);
+
+        //obtain a reference to the main player view
+        ViewGroup veeplayViews = APSMediaPlayer.getInstance().viewController();
+
+        //check if the player was previously attached somewhere else
+        if(veeplayViews.getParent() != null) {
+            ((ViewGroup)veeplayViews.getParent()).removeView(veeplayViews);
+        }
+        playerParent.addView(veeplayViews);
+        APSMediaPlayer.getInstance().showHud();
     }
 }
