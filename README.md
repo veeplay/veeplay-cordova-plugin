@@ -2,7 +2,7 @@
 
 ###Overview
 
-The Veeplay Cordova plugin exposes the native functionalities of the Veeplay SDK inside a Cordova application. Currently the Android platform is support, with iOS being planned for release in April 2016.
+The Veeplay Cordova plugin exposes the native functionalities of the Veeplay SDK inside a Cordova application. Currently the Android platform is supported, with iOS being planned for release in April 2016.
 
 The plugin allows content video units and ads to be rendered by configuring the player using the Veeplay JSON configuration DSL (documentation can be found here: [http://veeplay.github.io/json-docs/]()). The JSON configuration can be passed to the player either as a Javascript object or via an URL linking to a JSON configuration file.
 
