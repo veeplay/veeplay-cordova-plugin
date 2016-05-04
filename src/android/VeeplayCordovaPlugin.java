@@ -45,7 +45,25 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         cordovaParent = ((ViewGroup) webView.getView().getParent());
         playerContainer = new RelativeLayout(cordova.getActivity());
         playerContainer.setBackgroundColor(Color.BLACK);
+
     }
+
+    public void onStart() {
+        Log.d("CordovaVeeplay", "Start activity");
+    }
+
+    public void onStop() {
+        Log.d("CordovaVeeplay", "Stop activity");
+    }
+
+    public void onResume(boolean multitasking) {
+        Log.d("CordovaVeeplay", "Resume activity");
+    }
+
+    public void onPause(boolean multitasking) {
+        Log.d("CordovaVeeplay", "Pause activity");
+    }
+
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {

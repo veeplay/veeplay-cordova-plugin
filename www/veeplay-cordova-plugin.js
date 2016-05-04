@@ -19,20 +19,60 @@ exports.fullscreenPlayFromObject = function(arg0, success, error) {
 
 exports.playFromUrl = function(arg0, success, error) {
     internalBridgeCall("stopBoundingTimer");
-    window.veeplay.timerId = setInterval(window.veeplay.getBounds, 20);
-    console.log("Added bounded timer with id:  "+window.veeplay.timerId);
-    var rect = document.getElementById(window.veeplay.playerId).getBoundingClientRect();
-    exec(success, error, "veeplay-cordova-plugin", "playFromUrl", [arg0, rect.top, rect.right, rect.bottom, rect.left]);
-    exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge");
+    var jsonUrl = arg0;
+    var rect;
+    if(typeof arg0 === 'string') {
+        console.log("Playing URL by bounding a div");
+        window.veeplay.timerId = setInterval(window.veeplay.getBounds, 20);
+        console.log("Added bounded timer with id:  "+window.veeplay.timerId);
+        rect = document.getElementById(window.veeplay.playerId).getBoundingClientRect();
+        exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge");
+    } else {
+        if(!arg0.hasOwnProperty('xPosition') || !arg0.hasOwnProperty('yPosition') || !arg0.hasOwnProperty('width') || !arg0.hasOwnProperty('height') || !arg0.hasOwnProperty('jsonUrl')) {
+            console.log("The object should have the following properties: xPosition, yPosition, width, height, jsonUrl");
+            error();
+            return;
+        }
+        jsonUrl = arg0.jsonUrl;
+        rect = {
+            'top': arg0.yPosition,
+            'right': arg0.xPosition+arg0.width,
+            'bottom': arg0.yPosition+arg0.height,
+            'left': arg0.xPosition
+        };
+        console.log("Playing URL with XYWH coordinates: "+JSON.stringify(rect));
+    }
+    exec(success, error, "veeplay-cordova-plugin", "playFromUrl", [jsonUrl, rect.top, rect.right, rect.bottom, rect.left]);
 };
 
 exports.playFromObject = function(arg0, success, error) {
     internalBridgeCall("stopBoundingTimer");
-    window.veeplay.timerId = setInterval(window.veeplay.getBounds, 20);
-    console.log("Added bounded timer with id:  "+window.veeplay.timerId);
-    var rect = document.getElementById(window.veeplay.playerId).getBoundingClientRect();
+    var rect;
+    if(!arg0.hasOwnProperty('cordovaConfig')) {
+        window.veeplay.timerId = setInterval(window.veeplay.getBounds, 20);
+        console.log("Added bounded timer with id:  "+window.veeplay.timerId);
+        rect = document.getElementById(window.veeplay.playerId).getBoundingClientRect();
+        exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge");
+    } else {
+        var cordovaConfig = arg0.cordovaConfig;
+        if( !cordovaConfig.hasOwnProperty('xPosition') ||
+            !cordovaConfig.hasOwnProperty('yPosition') ||
+            !cordovaConfig.hasOwnProperty('width') ||
+            !cordovaConfig.hasOwnProperty('height')) {
+                console.log("The cordovaConfig object should have the following properties: xPosition, yPosition, width, height");
+                error();
+                return;
+        }
+        rect = {
+            'top': cordovaConfig.yPosition,
+            'right': cordovaConfig.xPosition+cordovaConfig.width,
+            'bottom': cordovaConfig.yPosition+cordovaConfig.height,
+            'left': cordovaConfig.xPosition
+        };
+        console.log("Playing URL with XYWH coordinates: "+JSON.stringify(rect));
+    }
+
     exec(success, error, "veeplay-cordova-plugin", "playFromObject", [JSON.stringify(arg0), rect.top, rect.right, rect.bottom, rect.left]);
-    exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge");
 };
 
 exports.stop = function(success, error) {
@@ -49,39 +89,39 @@ exports.resume = function(success, error) {
 };
 
 exports.getDuration = function(success, error) {
-	exec(success, error, "veeplay-cordova-plugin", "duration", []);
+    exec(success, error, "veeplay-cordova-plugin", "duration", []);
 };
 
 exports.getBufferedTime = function(success, error) {
-	exec(success, error, "veeplay-cordova-plugin", "bufferedTime", []);
+    exec(success, error, "veeplay-cordova-plugin", "bufferedTime", []);
 };
 
 exports.toggleFullscreen = function(success, error) {
-	exec(success, error, "veeplay-cordova-plugin", "toggleFullscreen", []);
+    exec(success, error, "veeplay-cordova-plugin", "toggleFullscreen", []);
 };
 
 exports.mute = function(success, error) {
-	exec(success, error, "veeplay-cordova-plugin", "mute", []);
+    exec(success, error, "veeplay-cordova-plugin", "mute", []);
 };
 
 exports.unMute = function(success, error) {
-	exec(success, error, "veeplay-cordova-plugin", "unMute", []);
+    exec(success, error, "veeplay-cordova-plugin", "unMute", []);
 };
 
 exports.isPlaying = function(success, error) {
-	exec(success, error, "veeplay-cordova-plugin", "isPlaying", []);
+    exec(success, error, "veeplay-cordova-plugin", "isPlaying", []);
 };
 
 exports.isSeeking = function(success, error) {
-	exec(success, error, "veeplay-cordova-plugin", "isSeeking", []);
+    exec(success, error, "veeplay-cordova-plugin", "isSeeking", []);
 };
 
 exports.skip = function(success, error) {
-	exec(success, error, "veeplay-cordova-plugin", "skip", []);
+    exec(success, error, "veeplay-cordova-plugin", "skip", []);
 };
 
 exports.back = function(success, error) {
-	exec(success, error, "veeplay-cordova-plugin", "back", []);
+    exec(success, error, "veeplay-cordova-plugin", "back", []);
 };
 
 function internalBridgeCall(result) {
