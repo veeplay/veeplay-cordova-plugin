@@ -4,7 +4,8 @@ repositories{
 }
 
 dependencies {
-   compile('com.veeplay:veeplay-player-android:2.1.12')
+   compile 'com.veeplay:veeplay-player-android:2.1.14'
+   compile 'com.veeplay:veeplay-cast-plugin:1.1.4'
 }
 
 android {

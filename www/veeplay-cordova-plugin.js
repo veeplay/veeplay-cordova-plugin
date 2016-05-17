@@ -8,6 +8,35 @@ exports.getBounds = function() {
     exec(null, null, "veeplay-cordova-plugin", "getBounds", [rect.top, rect.right, rect.bottom, rect.left]);
 }
 
+exports.appStarted = function() {
+//    document.addEventListener("touchmove", window.veeplay.getBounds, false);
+    exec(null, null, "veeplay-cordova-plugin", "appStarted", []);
+};
+
+exports.configureCastSettings = function(castConfiguration, success, error) {
+    var playText;
+    if(castConfiguration.hasOwnProperty('playText')) {
+        playText = castConfiguration.playText;
+    }
+    var pauseText;
+    if(castConfiguration.hasOwnProperty('pauseText')) {
+        pauseText = castConfiguration.pauseText;
+    }
+    var disconnectText;
+    if(castConfiguration.hasOwnProperty('disconnectText')) {
+        disconnectText = castConfiguration.disconnectText;
+    }
+    var appName;
+    if(castConfiguration.hasOwnProperty('appName')) {
+        appName = castConfiguration.appName;
+    }
+    var appId;
+    if(castConfiguration.hasOwnProperty('appId')) {
+        appId = castConfiguration.appId;
+    }
+    exec(null, null, "veeplay-cordova-plugin", "configureCastSettings", [playText, pauseText, disconnectText, appName, appId]);
+}
+
 exports.fullscreenPlayFromUrl = function(jsonUrl, success, error) {
 //    document.addEventListener("touchmove", window.veeplay.getBounds, false);
     exec(success, error, "veeplay-cordova-plugin", "fullscreenPlayFromUrl", [jsonUrl]);
@@ -26,7 +55,7 @@ exports.playFromUrl = function(arg0, success, error) {
         window.veeplay.timerId = setInterval(window.veeplay.getBounds, 20);
         console.log("Added bounded timer with id:  "+window.veeplay.timerId);
         rect = document.getElementById(window.veeplay.playerId).getBoundingClientRect();
-        exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge");
+        exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge", []);
     } else {
         if(!arg0.hasOwnProperty('xPosition') || !arg0.hasOwnProperty('yPosition') || !arg0.hasOwnProperty('width') || !arg0.hasOwnProperty('height') || !arg0.hasOwnProperty('jsonUrl')) {
             console.log("The object should have the following properties: xPosition, yPosition, width, height, jsonUrl");
@@ -59,7 +88,7 @@ exports.playFromObject = function(arg0, success, error) {
             !cordovaConfig.hasOwnProperty('yPosition') ||
             !cordovaConfig.hasOwnProperty('width') ||
             !cordovaConfig.hasOwnProperty('height')) {
-                console.log("The cordovaConfig object should have the following properties: xPosition, yPosition, width, height");
+                console.log("The cordovaConfig object should have the following required properties: xPosition, yPosition, width, height");
                 error();
                 return;
         }

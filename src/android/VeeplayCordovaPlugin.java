@@ -14,6 +14,10 @@ import com.appscend.media.APSMediaPlayer;
 import com.appscend.media.APSMediaTrackingEvents;
 import com.appscend.utilities.APSMediaPlayerTrackingEventListener;
 import com.appscend.utilities.VPUtilities;
+import com.veeplay.cast.APSMediaRouteButtonOverlayController;
+import com.veeplay.cast.GoogleCastRenderer;
+import com.veeplay.cast.VeeplayCastConfiguration;
+import com.veeplay.cast.VeeplayCastManager;
 
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
@@ -35,6 +39,9 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     private Dialog fullscreenPlayerDialog;
     private CallbackContext eventsCallbackContext;
     private CallbackContext internalBridgeContext;
+    private static String lastAction;
+    private static JSONArray lastArgs;
+    private VeeplayCastConfigurationWrapper castConfigurationObject;
     ViewGroup cordovaParent;
     RelativeLayout playerContainer;
     private int topOffset = 0;
@@ -45,7 +52,16 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         cordovaParent = ((ViewGroup) webView.getView().getParent());
         playerContainer = new RelativeLayout(cordova.getActivity());
         playerContainer.setBackgroundColor(Color.BLACK);
-
+        if(APSMediaPlayer.getInstance().isRenderingToGoogleCast()) {
+            Log.d("CordovaVeeplay", "We should put the player back on screen");
+            try {
+                execute(lastAction, lastArgs, eventsCallbackContext);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.d("CordovaVeeplay", "We were initialized");
+        }
     }
 
     public void onStart() {
@@ -83,6 +99,8 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             int leftBound = args.getInt(4);
             int width = rightBound-leftBound;
             int height = bottomBound-topBound;
+            lastAction = action;
+            lastArgs = args;
             String jsonUrl = args.getString(0);
             playFromJsonUrl(jsonUrl, topBound, leftBound, width, height, callbackContext);
             return true;
@@ -122,9 +140,14 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             return true;
         } else if (action.equals("getBounds")) {
             int newTopOffset = VPUtilities.pixelsToDip(args.getInt(0), cordova.getActivity());
-            int diff = topOffset-newTopOffset;
+            final int diff = topOffset-newTopOffset;
             if(playerContainer != null) {
-                playerContainer.setTranslationY(-diff);
+                cordova.getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        playerContainer.setTranslationY(-diff);
+                    }
+                });
             }
             return true;
         } else if(action.equals("bindInternalBridge")) {
@@ -172,6 +195,8 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             APSMediaPlayer.getInstance().toggleFullscreen();
             eventsCallbackContext.success("true");
             return true;
+        } else if(action.equals("configureCastSettings")) {
+            castConfigurationObject = new VeeplayCastConfigurationWrapper(args);
         }
         return false;
     }
@@ -222,10 +247,13 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                eventsCallbackContext = callbackContext;
-
                 addPlayerContainer(top, left, width, height);
+                eventsCallbackContext = callbackContext;
                 initVeeplay(playerContainer);
+
+                if(APSMediaPlayer.getInstance().isRenderingToGoogleCast()) {
+                    return;
+                }
 
                 cordova.getThreadPool().submit(new Runnable() {
                     @Override
@@ -339,11 +367,13 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     }
 
     private void initVeeplay(ViewGroup playerParent) {
-        APSMediaPlayer.getInstance().finish();
-        APSMediaPlayer.getInstance().init(cordova.getActivity(), true);
-        APSMediaPlayer.getInstance().removeAllTrackingEventListeners();
-        APSMediaPlayer.getInstance().addTrackingEventListener(VeeplayCordovaPlugin.this);
-
+        if(!APSMediaPlayer.getInstance().isRenderingToGoogleCast()) {
+            APSMediaPlayer.getInstance().finish();
+            APSMediaPlayer.getInstance().init(cordova.getActivity(), true);
+            APSMediaPlayer.getInstance().removeAllTrackingEventListeners();
+            APSMediaPlayer.getInstance().addTrackingEventListener(VeeplayCordovaPlugin.this);
+            initCastSupport();
+        }
         //obtain a reference to the main player view
         ViewGroup veeplayViews = APSMediaPlayer.getInstance().viewController();
 
@@ -353,5 +383,32 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         }
         playerParent.addView(veeplayViews);
         APSMediaPlayer.getInstance().showHud();
+    }
+
+    private void initCastSupport() {
+        if(castConfigurationObject==null) castConfigurationObject = new VeeplayCastConfigurationWrapper();
+        VeeplayCastConfiguration castConfiguration = new VeeplayCastConfiguration.Builder()
+        .setCastNotificationPlayText(castConfigurationObject.getPlayText())
+        .setCastNotificationPauseText(castConfigurationObject.getPauseText())
+        .setCastNotificationDisconnectText(castConfigurationObject.getDisconnectText())
+//        .setCastNotificationSmallIcon(R.drawable.ic_cast_on_dark)
+//        .setCastNotificationLargeIcon(R.mipmap.icon)
+        .setCastNotificationTitle(castConfigurationObject.getAppName())
+        .build();
+        VeeplayCastManager.getInstance().init(cordova.getActivity(), castConfigurationObject.getAppId(), castConfiguration);
+
+        APSMediaPlayer.getInstance().registerClassInGroup(
+            GoogleCastRenderer.class,
+            APSMediaPlayer.kAPSMediaPlayerRenderersGroup,
+            GoogleCastRenderer.rendererIdentifier
+        );
+
+        APSMediaPlayer.getInstance().registerClassInGroup(
+            APSMediaRouteButtonOverlayController.class,
+            APSMediaPlayer.kAPSMediaPlayerOverlayControllersGroup,
+            APSMediaRouteButtonOverlayController.APSMediaRouteOverlay
+        );
+
+        APSMediaPlayer.getInstance().setGoogleCastEnabled();
     }
 }

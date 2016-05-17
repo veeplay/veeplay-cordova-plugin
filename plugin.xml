@@ -3,7 +3,7 @@
 		xmlns="http://apache.org/cordova/ns/plugins/1.0" 
 		xmlns:android="http://schemas.android.com/apk/res/android"
 		id="veeplay-cordova-plugin" 
-		version="1.0.0">
+		version="1.1.0">
 
 	<name>veeplay-cordova-plugin</name>
 	<js-module name="veeplay-cordova-plugin" 
@@ -33,6 +33,9 @@
 		</config-file>
 		<source-file 
 			src="src/android/VeeplayCordovaPlugin.java" 
+			target-dir="src/com/veeplay/cordova/" />
+		<source-file 
+			src="src/android/VeeplayCastConfigurationWrapper.java" 
 			target-dir="src/com/veeplay/cordova/" />
 		</platform>
 	</plugin>
