@@ -30,6 +30,7 @@
 			android:name="com.appscend.utilities.WebBrowser"
 			android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize">
 			</activity>
+			<service android:name="com.veeplay.cast.VeeplayCastingService" android:exported="false" />
 		</config-file>
 		<source-file 
 			src="src/android/VeeplayCordovaPlugin.java" 
