@@ -81,7 +81,7 @@ exports.playFromObject = function(arg0, success, error) {
         window.veeplay.timerId = setInterval(window.veeplay.getBounds, 20);
         console.log("Added bounded timer with id:  "+window.veeplay.timerId);
         rect = document.getElementById(window.veeplay.playerId).getBoundingClientRect();
-        exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge");
+        exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge", []);
     } else {
         var cordovaConfig = arg0.cordovaConfig;
         if( !cordovaConfig.hasOwnProperty('xPosition') ||
