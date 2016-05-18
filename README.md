@@ -160,7 +160,7 @@ Due to the fact that the MediaRouter is dependent on the Google support library 
 
 	public class CordovaActivity extends FragmentActivity 
 
-**D.** In the *platforms/android/AndroidManifest.xml* file, in the first **<activity>** tag, replace
+**D.** In the *platforms/android/AndroidManifest.xml* file, in the first **\<activity>** tag, replace
 
 	android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
   with 
