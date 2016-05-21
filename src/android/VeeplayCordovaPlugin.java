@@ -138,8 +138,8 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
                 APSMediaPlayer.getInstance().resumePlay();
             }
             return true;
-        } else if (action.equals("getBounds")) {
-            int newTopOffset = VPUtilities.pixelsToDip(args.getInt(0), cordova.getActivity());
+        } else if (action.equals("setBounds")) {
+            int newTopOffset = VPUtilities.pixelsToDip(args.getInt(1), cordova.getActivity());
             final int diff = topOffset-newTopOffset;
             if(playerContainer != null) {
                 cordova.getActivity().runOnUiThread(new Runnable() {
