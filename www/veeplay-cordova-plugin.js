@@ -133,6 +133,7 @@ function Veeplay() {
             rect = getDivRect(div);
             jsonUrl = arg0;
             exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge", []);
+            exec(self.onTrackingEvent, function() {}, "veeplay-cordova-plugin", "bindEventsBridge", []);
         } else {
             var cordovaConfig = arg0.cordovaConfig || arg0;
             if(cordovaConfig.hasOwnProperty('jsonUrl')) {
