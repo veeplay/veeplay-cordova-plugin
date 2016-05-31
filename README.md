@@ -187,4 +187,4 @@ Within the deviceready callback (or wherever convenient, early in the applicatio
 
 ###Licensing
 
-The Veeplay Cordova plugin is available as an open-source component, under the Apache 2.0 license. Usage of the Veeplay SDK however is dependant on having a valid Veeplay license (you can sign up for a trial license at https://panel.veeso.co).
+The Veeplay Cordova plugin is available as an open-source component, under the Apache 2.0 license. Usage of the Veeplay SDK however is dependant on having a valid Veeplay license (you can sign up for a trial license at https://panel.veeplay.com).
