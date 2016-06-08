@@ -117,6 +117,36 @@ function Veeplay() {
         exec(null, null, "veeplay-cordova-plugin", "configureCastSettings", [playText, pauseText, disconnectText, appName, appId]);
     }
 
+    self.playFromUrl = function(arg0, success, error) {
+        if(typeof arg0 === 'string') {
+            self.play(arg0, success, error);
+        } else {
+            if(arg0.hasOwnProperty('jsonUrl')) {
+                self.play(arg0, success, error);
+            }
+        }
+    }
+
+    self.playFromObject = function(arg0, success, error) {
+        self.play(arg0, success, error);
+    }
+
+    self.fullscreenPlayFromUrl = function(arg0, success, error) {
+        var obj = {
+            "jsonUrl": arg0,
+            "fullscreen": true
+        }
+        self.play(obj, success, error);
+    }
+
+    self.fullscreenPlayFromObject = function(arg0, success, error) {
+        if(!arg0.cordovaConfig) {
+            arg0.cordovaConfig = {}
+        }
+        arg0.cordovaConfig.fullscreen = true;
+        self.play(arg0, success, error);
+    }
+
     self.play = function(arg0, success, error) {
         var div = document.getElementById(window.veeplay.playerId);
         var rect;
