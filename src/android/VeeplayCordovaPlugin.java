@@ -27,9 +27,11 @@ import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 
 /**
  * This class echoes a string called from JavaScript.
@@ -37,8 +39,9 @@ import java.net.URL;
 public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterface.OnCancelListener, APSMediaPlayerTrackingEventListener {
 
     private Dialog fullscreenPlayerDialog;
-    private CallbackContext eventsCallbackContext;
+    private CallbackContext mainCallbackContext;
     private CallbackContext internalBridgeContext;
+    private CallbackContext eventsTrackingContext;
     private static String lastAction;
     private static JSONArray lastArgs;
     private VeeplayCastConfigurationWrapper castConfigurationObject;
@@ -55,7 +58,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         if(APSMediaPlayer.getInstance().isRenderingToGoogleCast()) {
             Log.d("CordovaVeeplay", "We should put the player back on screen");
             try {
-                execute(lastAction, lastArgs, eventsCallbackContext);
+                execute(lastAction, lastArgs, mainCallbackContext);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -90,35 +93,27 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         // using if instead of switch in order to maintain compatibility with Java 6 projects
-        if (action.equals("fullscreenPlayFromUrl")) {
-            String message = args.getString(0);
-            this.fullscreenPlayFromUrl(message, callbackContext);
-            return true;
-        } else if (action.equals("fullscreenPlayFromObject")) {
-            String message = args.getString(0);
-            this.fullscreenPlayFromObject(message, callbackContext);
-            return true;
-        } else if (action.equals("playFromUrl")) {
-            int topBound = args.getInt(1);
-            int rightBound = args.getInt(2);
-            int bottomBound = args.getInt(3);
-            int leftBound = args.getInt(4);
-            int width = rightBound-leftBound;
-            int height = bottomBound-topBound;
+        if (action.equals("play")) {
+            int topBound = args.getInt(2);
+            int leftBound = args.getInt(1);
+            int width = args.getInt(3);
+            int height = args.getInt(4);
+            boolean fullscreen = args.getBoolean(5);
             lastAction = action;
             lastArgs = args;
-            String jsonUrl = args.getString(0);
-            playFromJsonUrl(jsonUrl, topBound, leftBound, width, height, callbackContext);
-            return true;
-        } else if (action.equals("playFromObject")) {
-            int topBound = args.getInt(1);
-            int rightBound = args.getInt(2);
-            int bottomBound = args.getInt(3);
-            int leftBound = args.getInt(4);
-            int width = rightBound-leftBound;
-            int height = bottomBound-topBound;
-            String jsonData = args.getString(0);
-            playFromJsonData(jsonData, topBound, leftBound, width, height, callbackContext);
+            if(args.getString(0).startsWith("{")) {
+                if(!fullscreen) {
+                    playFromJsonData(args.getString(0), topBound, leftBound, width, height, callbackContext);
+                } else {
+                    fullscreenPlayFromObject(args.getString(0), callbackContext);
+                }
+            } else {
+                if(!fullscreen) {
+                    playFromJsonUrl(args.getString(0), topBound, leftBound, width, height, callbackContext);
+                } else {
+                    fullscreenPlayFromUrl(args.getString(0), callbackContext);
+                }
+            }
             return true;
         } else if (action.equals("stop")) {
             cordova.getActivity().runOnUiThread(new Runnable() {
@@ -144,8 +139,8 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
                 APSMediaPlayer.getInstance().resumePlay();
             }
             return true;
-        } else if (action.equals("getBounds")) {
-            int newTopOffset = VPUtilities.pixelsToDip(args.getInt(0), cordova.getActivity());
+        } else if (action.equals("setBounds")) {
+            int newTopOffset = VPUtilities.pixelsToDip(args.getInt(1), cordova.getActivity());
             final int diff = topOffset-newTopOffset;
             if(playerContainer != null) {
                 cordova.getActivity().runOnUiThread(new Runnable() {
@@ -159,47 +154,50 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         } else if(action.equals("bindInternalBridge")) {
             internalBridgeContext = callbackContext;
             return true;
+        } else if(action.equals("bindEventsBridge")) {
+            eventsTrackingContext = callbackContext;
+            return true;
         } else if(action.equals("isPlaying")) {
-            eventsCallbackContext.success(""+APSMediaPlayer.getInstance().isPlaying());
+            mainCallbackContext.success(""+APSMediaPlayer.getInstance().isPlaying());
             return true;
         } else if(action.equals("isSeeking")) {
-            eventsCallbackContext.success(""+APSMediaPlayer.getInstance().isSeeking());
+            mainCallbackContext.success(""+APSMediaPlayer.getInstance().isSeeking());
             return true;
         } else if(action.equals("skip")) {
             APSMediaPlayer.getInstance().skip();
-            eventsCallbackContext.success("true");
+            mainCallbackContext.success("true");
             return true;
         } else if(action.equals("back")) {
             APSMediaPlayer.getInstance().back();
-            eventsCallbackContext.success("true");
+            mainCallbackContext.success("true");
             return true;
         } else if(action.equals("mute")) {
             APSMediaPlayer.getInstance().setMute(true);
-            eventsCallbackContext.success("true");
+            mainCallbackContext.success("true");
             return true;
         } else if(action.equals("unmute")) {
             APSMediaPlayer.getInstance().setMute(false);
-            eventsCallbackContext.success("ok");
+            mainCallbackContext.success("ok");
             return true;
         } else if(action.equals("duration")) {
             int duration = APSMediaPlayer.getInstance().duration();
             if(duration==0) {
-                eventsCallbackContext.error(0);
+                mainCallbackContext.error(0);
             } else {
-                eventsCallbackContext.success(""+duration);
+                mainCallbackContext.success(""+duration);
             }
             return true;
         } else if(action.equals("bufferedTime")) {
             int bufferedTime = APSMediaPlayer.getInstance().playableDuration(APSMediaPlayer.getInstance().duration());
             if(bufferedTime==0) {
-                eventsCallbackContext.error(0);
+                mainCallbackContext.error(0);
             } else {
-                eventsCallbackContext.success(""+bufferedTime);
+                mainCallbackContext.success(""+bufferedTime);
             }
             return true;
         } else if(action.equals("toggleFullscreen")) {
             APSMediaPlayer.getInstance().toggleFullscreen();
-            eventsCallbackContext.success("true");
+            mainCallbackContext.success("true");
             return true;
         } else if(action.equals("configureCastSettings")) {
             castConfigurationObject = new VeeplayCastConfigurationWrapper(args);
@@ -223,7 +221,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
                     }
                 }
             });
-            eventsCallbackContext = callbackContext;
+            mainCallbackContext = callbackContext;
             PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
             pluginResult.setKeepCallback(true);
             callbackContext.sendPluginResult(pluginResult);
@@ -254,7 +252,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             @Override
             public void run() {
                 addPlayerContainer(top, left, width, height);
-                eventsCallbackContext = callbackContext;
+                mainCallbackContext = callbackContext;
                 initVeeplay(playerContainer);
 
                 if(APSMediaPlayer.getInstance().isRenderingToGoogleCast()) {
@@ -287,7 +285,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                eventsCallbackContext = callbackContext;
+                mainCallbackContext = callbackContext;
 
                 addPlayerContainer(top, left, width, height);
                 initVeeplay(playerContainer);
@@ -345,16 +343,16 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             if(internalBridgeContext != null) {
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, "stopBoundingTimer");
                 pluginResult.setKeepCallback(true);
-                eventsCallbackContext.sendPluginResult(pluginResult);
+                mainCallbackContext.sendPluginResult(pluginResult);
 
             }
         }
-        if(eventsCallbackContext != null) {
-            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, mediaEventType.toString());
+        if(eventsTrackingContext != null) {
+            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, new JSONObject(generatePlayerEventHashMap(mediaEventType)));
             pluginResult.setKeepCallback(true);
-            eventsCallbackContext.sendPluginResult(pluginResult);
+            eventsTrackingContext.sendPluginResult(pluginResult);
         }
-//        eventsCallbackContext.success(mediaEventType.toString());
+//        mainCallbackContext.success(mediaEventType.toString());
     }
 
     private void addPlayerContainer(int top, int left, int width, int height) {
@@ -416,5 +414,30 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         );
 
         APSMediaPlayer.getInstance().setGoogleCastEnabled();
+    }
+
+    private HashMap<String, Object> generatePlayerEventHashMap(APSMediaTrackingEvents.MediaEventType eventType) {
+        HashMap<String, Object> playerEvent = new HashMap<String, Object>();
+        playerEvent.put("type", eventType.toString());
+
+        if(eventType == APSMediaTrackingEvents.MediaEventType.ERROR) {
+            playerEvent.put("error", true);
+        } else {
+            playerEvent.put("error", false);
+        }
+
+        if(eventType == APSMediaTrackingEvents.MediaEventType.REWIND || eventType == APSMediaTrackingEvents.MediaEventType.FORWARD) {
+            playerEvent.put("seek_start", true);
+        } else {
+            playerEvent.put("seek_start", false);
+        }
+
+        if(APSMediaPlayer.getInstance().isPlaying() || APSMediaPlayer.getInstance().isPaused()) {
+            playerEvent.put("playback_time", APSMediaPlayer.getInstance().currentPlaybackTime());
+        } else {
+            playerEvent.put("playback_time", null);
+        }
+
+        return playerEvent;
     }
 }

@@ -42,19 +42,11 @@ Calling this method will display a fullscreen overlay over the Cordova applicati
 
 The player configuration data is retrieved from the URL specified in the jsonUrl variable.
 
-All player status events are notified inside the successCallback(result) function.
-
-	window.veeplay.playFromUrl("JSONUrl", function(result) {
-		console.log("New player event: "+result);
-	});
-
 ####fullscreenPlayFromObject(jsonObject, successCallback, errorCallback)
 
 Calling this method will display a fullscreen overlay over the Cordova application, with the player centered inside.
 
 The player configuration data is retrieved from the JSON object passed in the jsonObject variable.
-
-All player status events are notified inside the successCallback(result) function.
 
 ####playFromUrl(jsonUrl, successCallback, errorCallback)
 
@@ -137,6 +129,21 @@ This method will stop the playback of the current unit and start playback of the
 ####back(successCallback, errorCallback)
 
 This method will stop the playback of the current unit and start playback of the previous unit in the playlist.
+
+###Intercepting player events
+
+Veeplay emits a wide array of events that notify playback states, errors and user interactions. In order to intercept those events (for analytics tracking or for updating the UI, for example), use the following snippet:
+
+        window.veeplay.onTrackingEvent = function(result) {
+            console.log(JSON.stringify(result));
+        }
+
+The "result" variable is a Javascript object, with the following structure:
+
+* `type` - the event being fired
+* `error` - if the event represents an error, this should contain details
+* `seek_start` - if the event represents a seek, this should indicate when the seek has started
+* `playback_time` - the playback time when the event fired
 
 ###Google cast usage
 
