@@ -66,10 +66,16 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
 
     public void onStart() {
         Log.d("CordovaVeeplay", "Start activity");
+        if(APSMediaPlayer.getInstance().isPaused()) {
+            APSMediaPlayer.getInstance().resumePlay();
+        }
     }
 
     public void onStop() {
         Log.d("CordovaVeeplay", "Stop activity");
+        if(APSMediaPlayer.getInstance().isPlaying() && !APSMediaPlayer.getInstance().isRenderingToGoogleCast()) {
+            APSMediaPlayer.getInstance().pause();
+        }
     }
 
     public void onResume(boolean multitasking) {
