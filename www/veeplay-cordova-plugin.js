@@ -132,12 +132,11 @@ function Veeplay() {
             self.startMonitoring();
             rect = getDivRect(div);
             jsonUrl = arg0;
-            exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge", []);
-            exec(self.onTrackingEvent, function() {}, "veeplay-cordova-plugin", "bindEventsBridge", []);
+
         } else {
             var cordovaConfig = arg0.cordovaConfig || arg0;
             if(cordovaConfig.hasOwnProperty('jsonUrl')) {
-                jsonUrl = arg0.jsonUrl;
+                jsonUrl = cordovaConfig.jsonUrl;
             } else {
                 jsonObject = JSON.stringify(arg0);
             }
@@ -154,10 +153,10 @@ function Veeplay() {
                 rect = getDivRect(div);   
             } else {
                 rect = {
-                    'top': arg0.yPosition,
-                    'width': arg0.width,
-                    'height': arg0.height,
-                    'left': arg0.xPosition
+                    'top': cordovaConfig.yPosition,
+                    'width': cordovaConfig.width,
+                    'height': cordovaConfig.height,
+                    'left': cordovaConfig.xPosition
                 };
             }
 
@@ -165,6 +164,8 @@ function Veeplay() {
                 fullscreen = true;
             }
         }
+        exec(internalBridgeCall, function() {}, "veeplay-cordova-plugin", "bindInternalBridge", []);
+        exec(self.onTrackingEvent, function() {}, "veeplay-cordova-plugin", "bindEventsBridge", []);
         exec(success, error, "veeplay-cordova-plugin", "play", [jsonUrl?jsonUrl:jsonObject, rect.left, rect.top, rect.width, rect.height, fullscreen]);
     }
 
