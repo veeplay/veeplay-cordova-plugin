@@ -2,7 +2,7 @@
 
 ###Overview
 
-The Veeplay Cordova plugin exposes the native functionalities of the Veeplay SDK inside a Cordova application. Currently the Android platform is supported, with iOS being planned for release in April 2016.
+The Veeplay Cordova plugin exposes the native functionalities of the Veeplay SDK inside a Cordova application. Currently the iOS and Android platforms are support, while the Windows platform is being considered. If you would like to see Windows or other platforms supported, please drop us a line at office@veeplay.com.
 
 The plugin allows content video units and ads to be rendered by configuring the player using the Veeplay JSON configuration DSL (documentation can be found here: [http://veeplay.github.io/json-docs/]()). The JSON configuration can be passed to the player either as a Javascript object or via an URL linking to a JSON configuration file.
 
@@ -18,7 +18,7 @@ All of the plugins methods are grouped under the veeplay clobber. As such, you c
 
 ####Note on subtitles usage
 
-Currently, SRT and WebVTT subtitles are supported with Veeplay. WebVTT subtitles inside HLS streams are automatically supported starting with Veeplay 2.1.12. SRT subtitles can be configured by adding a subtitlesUrl property inside a content unit object.
+Currently, SRT and WebVTT subtitles are supported with Veeplay on Android only. WebVTT subtitles inside HLS streams are automatically supported starting with Veeplay 2.1.12. SRT subtitles can be configured by adding a subtitlesUrl property inside a content unit object.
 
 	"content": [
 		{
