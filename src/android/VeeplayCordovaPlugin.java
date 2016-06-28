@@ -19,10 +19,9 @@ import com.veeplay.cast.GoogleCastRenderer;
 import com.veeplay.cast.VeeplayCastConfiguration;
 import com.veeplay.cast.VeeplayCastManager;
 
+import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CallbackContext;
-
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
@@ -52,7 +51,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
-        cordovaParent = ((ViewGroup) webView.getView().getParent());
+        cordovaParent = (FrameLayout) cordova.getActivity().getWindow().getDecorView().findViewById(android.R.id.content);
         playerContainer = new RelativeLayout(cordova.getActivity());
         playerContainer.setBackgroundColor(Color.BLACK);
         if(APSMediaPlayer.getInstance().isRenderingToGoogleCast()) {
@@ -92,7 +91,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        // using if instead of switch in order to maintain compatibility with Java 6 projects
+        //noinspection IfCanBeSwitch using if instead of switch in order to maintain compatibility with Java 6 projects
         if (action.equals("play")) {
             int topBound = args.getInt(2);
             int leftBound = args.getInt(1);
@@ -356,6 +355,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     }
 
     private void addPlayerContainer(int top, int left, int width, int height) {
+
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         params.leftMargin = VPUtilities.pixelsToDip(left, cordova.getActivity());
@@ -417,6 +417,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     }
 
     private HashMap<String, Object> generatePlayerEventHashMap(APSMediaTrackingEvents.MediaEventType eventType) {
+        //noinspection Convert2Diamond - the Cordova project isn't yet compatible with Java 7 features.
         HashMap<String, Object> playerEvent = new HashMap<String, Object>();
         playerEvent.put("type", eventType.toString());
 

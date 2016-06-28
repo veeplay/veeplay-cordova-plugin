@@ -85,6 +85,9 @@ function Veeplay() {
     }
 
     self.setBounds = function(rect) {
+        if(isTabrisJs()) {
+            return;
+        }
         rect = rect || getDivRect(document.getElementById(window.veeplay.playerId));
         exec(null, null, "veeplay-cordova-plugin", "setBounds", [rect.left, rect.top, rect.width, rect.height]);
     }
@@ -148,7 +151,12 @@ function Veeplay() {
     }
 
     self.play = function(arg0, success, error) {
-        var div = document.getElementById(window.veeplay.playerId);
+        if(isTabrisJs()) {
+            console.log("We are running on TabrisJS");
+            var div = null;
+        } else {
+            var div = document.getElementById(window.veeplay.playerId);
+        }
         var rect;
         var jsonUrl = null;
         var jsonObject = null;
@@ -156,7 +164,7 @@ function Veeplay() {
         self.stopMonitoring();
         if(typeof arg0 === 'string') {
             if (!div) {
-                error("No element with id " + window.veeplay.playerId);
+                error("No element with id " + window.veeplay.playerId+" or you're running on an engine without a DOM.");
                 return;
             }
             self.startMonitoring();
@@ -175,12 +183,14 @@ function Veeplay() {
                 !cordovaConfig.hasOwnProperty('yPosition') ||
                 !cordovaConfig.hasOwnProperty('width') ||
                 !cordovaConfig.hasOwnProperty('height')) {
-                if (!div) {
-                    error("No element with id " + window.veeplay.playerId);
-                    return;
-                }
-                self.startMonitoring();
-                rect = getDivRect(div);   
+                    if (!div && !cordovaConfig.fullscreen) {
+                        error("No element with id " + window.veeplay.playerId);
+                        return;
+                    } else if (!cordovaConfig.fullscreen) {
+                        self.startMonitoring();
+                        rect = getDivRect(div);
+                    }
+
             } else {
                 rect = {
                     'top': cordovaConfig.yPosition,
@@ -255,6 +265,10 @@ function Veeplay() {
         if(result == "stopBoundingTimer") {
             self.stopMonitoring();
         }
+    }
+
+    function isTabrisJs() {
+        return (typeof document.getElementById == 'undefined');
     }
 }
 
