@@ -3,7 +3,7 @@
     xmlns="http://apache.org/cordova/ns/plugins/1.0" 
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="veeplay-cordova-plugin" 
-    version="1.1.0">
+    version="1.5.1">
 
     <name>veeplay-cordova-plugin</name>
     <js-module name="veeplay-cordova-plugin" src="www/veeplay-cordova-plugin.js">
