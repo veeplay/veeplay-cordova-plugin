@@ -439,6 +439,20 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             playerEvent.put("playback_time", null);
         }
 
+        if(APSMediaPlayer.getInstance()._currentUnit==null) {
+            playerEvent.put("current_unit_is_ad", false);
+        } else {
+            if(APSMediaPlayer.getInstance()._currentUnit.metadata==null) {
+                playerEvent.put("current_unit_is_ad", false);
+            } else {
+                if(APSMediaPlayer.getInstance()._currentUnit.metadata.containsKey("aps_vast_adbreak_index")) {
+                    playerEvent.put("current_unit_is_ad", true);
+                } else {
+                    playerEvent.put("current_unit_is_ad", false);
+                }
+            }
+        }
+
         return playerEvent;
     }
 }
