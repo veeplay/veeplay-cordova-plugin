@@ -92,6 +92,10 @@ function Veeplay() {
         exec(null, null, "veeplay-cordova-plugin", "setBounds", [rect.left, rect.top, rect.width, rect.height]);
     }
 
+    self.updatePlayerPosition = function(left, top, width, height) {
+        exec(null, null, "veeplay-cordova-plugin", "setBounds", [left, top, width, height]);
+    }
+
     self.appStarted = function() {
         exec(null, null, "veeplay-cordova-plugin", "appStarted", []);
     };
