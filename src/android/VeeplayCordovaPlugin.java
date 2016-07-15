@@ -47,6 +47,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     ViewGroup cordovaParent;
     RelativeLayout playerContainer;
     private int topOffset = 0;
+    private int leftOffset = 0;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -140,12 +141,15 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             return true;
         } else if (action.equals("setBounds")) {
             int newTopOffset = VPUtilities.pixelsToDip(args.getInt(1), cordova.getActivity());
-            final int diff = topOffset-newTopOffset;
-            if(playerContainer != null) {
+            int newLeftOffset = VPUtilities.pixelsToDip(args.getInt(0), cordova.getActivity());
+            final int yDiff = topOffset-newTopOffset;
+            final int xDiff = leftOffset-newLeftOffset;
+            if(playerContainer != null && playerContainer.getParent() != null) {
                 cordova.getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        playerContainer.setTranslationY(-diff);
+                        playerContainer.setTranslationX(-xDiff);
+                        playerContainer.setTranslationY(-yDiff);
                     }
                 });
             }
@@ -361,6 +365,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
         params.leftMargin = VPUtilities.pixelsToDip(left, cordova.getActivity());
         params.topMargin = VPUtilities.pixelsToDip(top, cordova.getActivity());
         topOffset = VPUtilities.pixelsToDip(top, cordova.getActivity());
+        leftOffset = VPUtilities.pixelsToDip(left, cordova.getActivity());
         params.width = VPUtilities.pixelsToDip(width, cordova.getActivity());
         params.height = VPUtilities.pixelsToDip(height, cordova.getActivity());
         playerContainer.setLayoutParams(params);
@@ -437,6 +442,20 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             playerEvent.put("playback_time", APSMediaPlayer.getInstance().currentPlaybackTime());
         } else {
             playerEvent.put("playback_time", null);
+        }
+
+        if(APSMediaPlayer.getInstance()._currentUnit==null) {
+            playerEvent.put("current_unit_is_ad", false);
+        } else {
+            if(APSMediaPlayer.getInstance()._currentUnit.metadata==null) {
+                playerEvent.put("current_unit_is_ad", false);
+            } else {
+                if(APSMediaPlayer.getInstance()._currentUnit.metadata.containsKey("aps_vast_adbreak_index")) {
+                    playerEvent.put("current_unit_is_ad", true);
+                } else {
+                    playerEvent.put("current_unit_is_ad", false);
+                }
+            }
         }
 
         return playerEvent;

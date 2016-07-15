@@ -1,6 +1,6 @@
 {
   "name": "veeplay-cordova-plugin",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Veeplay Cordova Plugin",
   "cordova": {
     "id": "veeplay-cordova-plugin",
