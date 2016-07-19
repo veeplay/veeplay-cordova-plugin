@@ -10,15 +10,16 @@
 
 @implementation VeeplayPlugin {
     NSString *_eventDelegateCallbackId;
+    NSString *_commandDelegateCalbackId;
     BOOL _needsFullscreen;
 }
 
-- (void) domElementPosition {
-    UIWebView *webView = (UIWebView*)self.webView;
-    [webView stringByEvaluatingJavaScriptFromString:@"window.veeplay.setBounds();"];
+- (void) bindInternalBridge:(CDVInvokedUrlCommand *)command {
+    _commandDelegateCalbackId = command.callbackId;
 }
 
-- (void) bindInternalBridge:(CDVInvokedUrlCommand *)command {
+- (void) bindEventsBridge:(CDVInvokedUrlCommand *)command {
+    _eventDelegateCallbackId = command.callbackId;
 }
 
 - (void) setBounds:(CDVInvokedUrlCommand *)command {
@@ -43,26 +44,38 @@
     if (_needsFullscreen && [notification.userInfo[kAPSMediaPlayerEventType] isEqualToString:@"start"]) {
         [[APSMediaPlayer sharedInstance] enterFullscreen];
         _needsFullscreen = NO;
-    } else if (_needsFullscreen && [notification.userInfo[kAPSMediaPlayerEventType] isEqualToString:@"finish"]) {
-        UIWebView *webView = (UIWebView*)self.webView;
-        [webView stringByEvaluatingJavaScriptFromString:@"window.veeplay.stopMonitoring();"];
+    } else if ([notification.userInfo[kAPSMediaPlayerEventType] isEqualToString:@"finish"]) {
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"stopBoundingTimer"];
+        [result setKeepCallbackAsBool:YES];
+        [self.commandDelegate sendPluginResult:result callbackId:_commandDelegateCalbackId];
+        [[APSMediaPlayer sharedInstance] exitFullscreen];
     }
     if (_eventDelegateCallbackId) {
-        UIWebView *webView = (UIWebView*)self.webView;
-        NSError *error;
         NSMutableDictionary *newDict = [NSMutableDictionary dictionaryWithDictionary:notification.userInfo];
+        APSMediaUnit *eventUnit = newDict[@"event.source"];
+        if (eventUnit.metadata && eventUnit.metadata[@"type"] && (
+                                                                  [eventUnit.metadata[@"type"] isEqualToString:@"preroll"] ||
+                                                                  [eventUnit.metadata[@"type"] isEqualToString:@"midroll"] ||
+                                                                  [eventUnit.metadata[@"type"] isEqualToString:@"postroll"]
+                                                                  )) {
+            newDict[@"current_unit_is_ad"] = @(YES);
+        }
         [newDict removeObjectForKey:@"event.source"];
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:newDict
-                                                           options:0
-                                                             error:&error];
-        [webView stringByEvaluatingJavaScriptFromString:[NSString stringWithFormat:@"window.veeplay.onTrackingEvent(%@);", [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding]]];
+        
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:newDict];
+        [result setKeepCallbackAsBool:YES];
+        [self.commandDelegate sendPluginResult:result callbackId:_eventDelegateCallbackId];
     }
 }
 
 - (void) play:(CDVInvokedUrlCommand*)command {
     [self subscribeToEventNotifications];
     UIWebView *webView = (UIWebView*)self.webView;
-    [webView.scrollView addSubview:[APSMediaPlayer sharedInstance].view];
+    if ([webView respondsToSelector:@selector(scrollView)]) {
+        [webView.scrollView addSubview:[APSMediaPlayer sharedInstance].view];
+    } else {
+        [webView addSubview:[APSMediaPlayer sharedInstance].view];
+    }
     CGRect playerFrame = CGRectMake([command.arguments[1] floatValue], [command.arguments[2] floatValue], [command.arguments[3] floatValue], [command.arguments[4] floatValue]);
     [APSMediaPlayer sharedInstance].view.frame = playerFrame;
     
@@ -90,8 +103,7 @@
     if ([command.arguments[5] boolValue]) {
         _needsFullscreen = YES;
     }
-
-    _eventDelegateCallbackId = command.callbackId;
+    
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
 }
 
