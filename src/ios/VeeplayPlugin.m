@@ -49,6 +49,7 @@
         [result setKeepCallbackAsBool:YES];
         [self.commandDelegate sendPluginResult:result callbackId:_commandDelegateCalbackId];
         [[APSMediaPlayer sharedInstance] exitFullscreen];
+        [[APSMediaPlayer sharedInstance].view removeFromSuperview];
     }
     if (_eventDelegateCallbackId) {
         NSMutableDictionary *newDict = [NSMutableDictionary dictionaryWithDictionary:notification.userInfo];
