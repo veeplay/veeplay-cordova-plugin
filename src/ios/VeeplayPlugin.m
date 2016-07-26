@@ -44,11 +44,10 @@
     if (_needsFullscreen && [notification.userInfo[kAPSMediaPlayerEventType] isEqualToString:@"start"]) {
         [[APSMediaPlayer sharedInstance] enterFullscreen];
         _needsFullscreen = NO;
-    } else if ([notification.userInfo[kAPSMediaPlayerEventType] isEqualToString:@"finish"]) {
+    } else if ([notification.userInfo[kAPSMediaPlayerEventType] isEqualToString:@"playlistFinish"]) {
         CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"stopBoundingTimer"];
         [result setKeepCallbackAsBool:YES];
         [self.commandDelegate sendPluginResult:result callbackId:_commandDelegateCalbackId];
-        [[APSMediaPlayer sharedInstance] exitFullscreen];
         [[APSMediaPlayer sharedInstance].view removeFromSuperview];
     }
     if (_eventDelegateCallbackId) {
