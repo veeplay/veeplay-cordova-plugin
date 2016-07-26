@@ -92,6 +92,7 @@
       <framework src="AVFoundation.framework" />
       <framework src="CoreMedia.framework" />
       <framework src="SystemConfiguration.framework" />
+      <framework src="AVKit.framework" />
       <framework src="libz.dylib" />
     </platform>
   </plugin>
