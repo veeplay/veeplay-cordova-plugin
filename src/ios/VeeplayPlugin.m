@@ -61,6 +61,7 @@
             newDict[@"current_unit_is_ad"] = @(YES);
         }
         [newDict removeObjectForKey:@"event.source"];
+        [newDict removeObjectForKey:@"event.urls"];
         
         CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:newDict];
         [result setKeepCallbackAsBool:YES];
@@ -71,13 +72,27 @@
 - (void) play:(CDVInvokedUrlCommand*)command {
     [self subscribeToEventNotifications];
     UIWebView *webView = (UIWebView*)self.webView;
+    
     if ([webView respondsToSelector:@selector(scrollView)]) {
         [webView.scrollView addSubview:[APSMediaPlayer sharedInstance].view];
     } else {
-        [webView addSubview:[APSMediaPlayer sharedInstance].view];
+        if (webView.subviews.count > 0) {
+            if (webView.subviews[0].subviews.count > 0) {
+                if (webView.subviews[0].subviews[0].subviews.count > 0) {
+                    [webView.subviews[0].subviews[0].subviews[0] addSubview:[APSMediaPlayer sharedInstance].view];
+                } else {
+                    [webView.subviews[0].subviews[0] addSubview:[APSMediaPlayer sharedInstance].view];
+                }
+            } else {
+                [webView.subviews[0] addSubview:[APSMediaPlayer sharedInstance].view];
+            }
+        } else {
+            [webView addSubview:[APSMediaPlayer sharedInstance].view];
+        }
     }
     CGRect playerFrame = CGRectMake([command.arguments[1] floatValue], [command.arguments[2] floatValue], [command.arguments[3] floatValue], [command.arguments[4] floatValue]);
     [APSMediaPlayer sharedInstance].view.frame = playerFrame;
+    [APSMediaPlayer sharedInstance].view.autoresizingMask = UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
     
     APSMediaBuilder *builder = [[APSMediaBuilder alloc] init];
     [builder addPlugin:[[APSVASTMediaBuilderPlugin alloc] init]];
