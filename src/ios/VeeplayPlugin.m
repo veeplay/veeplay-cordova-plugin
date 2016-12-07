@@ -93,6 +93,7 @@
     CGRect playerFrame = CGRectMake([command.arguments[1] floatValue], [command.arguments[2] floatValue], [command.arguments[3] floatValue], [command.arguments[4] floatValue]);
     [APSMediaPlayer sharedInstance].view.frame = playerFrame;
     [APSMediaPlayer sharedInstance].view.autoresizingMask = UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
+    [APSMediaPlayer sharedInstance].ignoreSilentSwitch = YES;
     
     APSMediaBuilder *builder = [[APSMediaBuilder alloc] init];
     [builder addPlugin:[[APSVASTMediaBuilderPlugin alloc] init]];
