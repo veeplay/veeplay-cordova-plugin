@@ -193,6 +193,13 @@ function Veeplay() {
                     } else if (!cordovaConfig.fullscreen) {
                         self.startMonitoring();
                         rect = getDivRect(div);
+                    } else {
+                        rect = {
+                            'left': 0,
+                            'top': 0,
+                            'width': window.screen.width,
+                            'height': window.screen.height
+                        };
                     }
 
             } else {
