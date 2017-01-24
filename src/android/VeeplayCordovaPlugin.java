@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
@@ -53,17 +54,28 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         cordovaParent = (FrameLayout) cordova.getActivity().getWindow().getDecorView().findViewById(android.R.id.content);
+        if(playerContainer != null && cordovaParent !=null) {
+            Log.d("VeeplayPlayer", "old container found");
+            cordova.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    cordovaParent.removeView(playerContainer);
+                }
+            });
+        }
         playerContainer = new RelativeLayout(cordova.getActivity());
+        playerContainer.setTag("VeeplayContainer");
+        Log.d("VeeplayPlayer", "set tag on container view");
         playerContainer.setBackgroundColor(Color.BLACK);
         if(APSMediaPlayer.getInstance().isRenderingToGoogleCast()) {
-            Log.d("CordovaVeeplay", "We should put the player back on screen");
+            Log.d("VeeplayPlayer", "We should put the player back on screen");
             try {
                 execute(lastAction, lastArgs, mainCallbackContext);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         } else {
-            Log.d("CordovaVeeplay", "We were initialized");
+            Log.d("VeeplayPlayer", "We were initialized");
         }
     }
 
@@ -123,8 +135,12 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
                     if(fullscreenPlayerDialog!=null && fullscreenPlayerDialog.isShowing()) {
                         fullscreenPlayerDialog.dismiss();
                     }
-                    if(playerContainer!=null && playerContainer.getParent()!=null) {
-                        cordovaParent.removeView(playerContainer);
+                    View container = cordovaParent.findViewWithTag("VeeplayContainer");
+                    if(container != null) {
+                        Log.d("VeeplayPlayer", "view found - removing container");
+                        cordovaParent.removeView(container);
+                    } else {
+                        Log.d("VeeplayPlayer", "view not found - container not removed");
                     }
                 }
             });
@@ -342,13 +358,20 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     @Override
     public void onTrackingEventReceived(APSMediaTrackingEvents.MediaEventType mediaEventType, Bundle bundle) {
         if(mediaEventType == APSMediaTrackingEvents.MediaEventType.PLAYLIST_FINISHED) {
+            Log.d("VeeplayPlayer", "finish event received");
             cordova.getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    cordovaParent.removeView(playerContainer);
+                    View container = cordovaParent.findViewWithTag("VeeplayContainer");
+                    if(container != null) {
+                        Log.d("VeeplayPlayer", "container view found");
+                    } else {
+                        Log.d("VeeplayPlayer", "container view not found");
+                    }
+                    cordovaParent.removeView(container);
                 }
             });
-            
+
             if(internalBridgeContext != null) {
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, "stopBoundingTimer");
                 pluginResult.setKeepCallback(true);
