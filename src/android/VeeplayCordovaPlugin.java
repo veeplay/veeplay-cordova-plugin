@@ -342,7 +342,13 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     @Override
     public void onTrackingEventReceived(APSMediaTrackingEvents.MediaEventType mediaEventType, Bundle bundle) {
         if(mediaEventType == APSMediaTrackingEvents.MediaEventType.PLAYLIST_FINISHED) {
-            cordovaParent.removeView(playerContainer);
+            cordova.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    cordovaParent.removeView(playerContainer);
+                }
+            });
+            
             if(internalBridgeContext != null) {
                 PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, "stopBoundingTimer");
                 pluginResult.setKeepCallback(true);
