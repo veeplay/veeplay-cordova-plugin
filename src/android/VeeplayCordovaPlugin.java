@@ -44,6 +44,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
     private CallbackContext eventsTrackingContext;
     private static String lastAction;
     private static JSONArray lastArgs;
+    private static CallbackContext savedEventsTrackingContext;
     private VeeplayCastConfigurationWrapper castConfigurationObject;
     ViewGroup cordovaParent;
     RelativeLayout playerContainer;
@@ -63,6 +64,7 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
                 }
             });
         }
+        if(savedEventsTrackingContext != null) eventsTrackingContext = savedEventsTrackingContext;
         playerContainer = new RelativeLayout(cordova.getActivity());
         playerContainer.setTag("VeeplayContainer");
         Log.d("VeeplayPlayer", "set tag on container view");
@@ -174,7 +176,14 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             internalBridgeContext = callbackContext;
             return true;
         } else if(action.equals("bindEventsBridge")) {
-            eventsTrackingContext = callbackContext;
+            if(callbackContext != null) {
+                eventsTrackingContext = callbackContext;
+                savedEventsTrackingContext = callbackContext;
+            }
+            Log.d("VeeplayPlayer", "binding events bridge");
+            if(callbackContext == null) {
+                Log.d("VeeplayPlayer", "bind called with null");
+            }
             return true;
         } else if(action.equals("isPlaying")) {
             mainCallbackContext.success(""+APSMediaPlayer.getInstance().isPlaying());
@@ -383,6 +392,9 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, new JSONObject(generatePlayerEventHashMap(mediaEventType)));
             pluginResult.setKeepCallback(true);
             eventsTrackingContext.sendPluginResult(pluginResult);
+            Log.d("VeeplayPlayer", "sent callback");
+        } else {
+            Log.d("VeeplayPlayer", "events tracking context null");
         }
 //        mainCallbackContext.success(mediaEventType.toString());
     }
@@ -410,6 +422,9 @@ public class VeeplayCordovaPlugin extends CordovaPlugin implements DialogInterfa
             APSMediaPlayer.getInstance().init(cordova.getActivity(), true);
             APSMediaPlayer.getInstance().removeAllTrackingEventListeners();
             APSMediaPlayer.getInstance().addTrackingEventListener(VeeplayCordovaPlugin.this);
+            if(eventsTrackingContext == null && savedEventsTrackingContext != null) {
+                eventsTrackingContext = savedEventsTrackingContext;
+            }
             initCastSupport();
         }
         //obtain a reference to the main player view
