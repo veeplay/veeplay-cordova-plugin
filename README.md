@@ -1,22 +1,22 @@
 ## Veeplay Cordova Plugin
 
-###Overview
+### Overview
 
 The Veeplay Cordova plugin exposes the native functionalities of the Veeplay SDK inside a Cordova application. Currently the iOS and Android platforms are support, while the Windows platform is being considered. If you would like to see Windows or other platforms supported, please drop us a line at office@veeplay.com.
 
 The plugin allows content video units and ads to be rendered by configuring the player using the Veeplay JSON configuration DSL (documentation can be found here: [http://veeplay.github.io/json-docs/]()). The JSON configuration can be passed to the player either as a Javascript object or via an URL linking to a JSON configuration file.
 
-###Instalation
+### Instalation
 
     cordova plugin add https://github.com/veeplay/veeplay-cordova-plugin.git
 
-###Usage and Javascript API
+### Usage and Javascript API
 
 All of the plugins methods are grouped under the veeplay clobber. As such, you can call any method using code similar to:
     
     window.veeplay.<method_name>
 
-####Note on subtitles usage
+#### Note on subtitles usage
 
 Currently, SRT and WebVTT subtitles are supported with Veeplay on Android only. WebVTT subtitles inside HLS streams are automatically supported starting with Veeplay 2.1.12. SRT subtitles can be configured by adding a subtitlesUrl property inside a content unit object.
 
@@ -28,7 +28,7 @@ Currently, SRT and WebVTT subtitles are supported with Veeplay on Android only. 
 		}
 	]
 
-####Playing videos inline (inside an HTML element)
+#### Playing videos inline (inside an HTML element)
 
 In order to add itself on the screen, when requested to play, the player will look for an HTML element with the "player" ID and will bind itself to this element. Before calling playFromUrl or playFromObject, add such an element to the DOM. Example:
 
@@ -36,19 +36,19 @@ In order to add itself on the screen, when requested to play, the player will lo
 
 Alternatively, a set of **X,Y,width,height** coordinates can be supplied for positioning and sizing the player container, regardless of the DOM contents. This use-case is further detailed in the documentation of the **playFromUrl** and **playFromObject** methods. The values will be supplied in pixels and will be automatically converted to density independent values.
 
-####fullscreenPlayFromUrl(jsonUrl, successCallback, errorCallback)
+#### fullscreenPlayFromUrl(jsonUrl, successCallback, errorCallback)
 
 Calling this method will display a fullscreen overlay over the Cordova application, with the player centered inside.
 
 The player configuration data is retrieved from the URL specified in the jsonUrl variable.
 
-####fullscreenPlayFromObject(jsonObject, successCallback, errorCallback)
+#### fullscreenPlayFromObject(jsonObject, successCallback, errorCallback)
 
 Calling this method will display a fullscreen overlay over the Cordova application, with the player centered inside.
 
 The player configuration data is retrieved from the JSON object passed in the jsonObject variable.
 
-####playFromUrl(jsonUrl, successCallback, errorCallback)
+#### playFromUrl(jsonUrl, successCallback, errorCallback)
 
 Calling this method will position the player inside the HTML element with the "player" ID and start playback using the configuration retrieved from jsonUrl.
 
@@ -64,7 +64,7 @@ In order to place the player directly on-screen, avoiding DOM elements, pass an 
 		 "height": 112
 		}, successCallback, errorCallback);
 
-####playFromObject(jsonObject, successCallback, errorCallback)
+#### playFromObject(jsonObject, successCallback, errorCallback)
 
 Calling this method will position the player inside the HTML element with the "player" ID and start playback using the configuration inside the jsonObject object.
 
@@ -82,55 +82,55 @@ In order to place the player directly on-screen, avoiding DOM elements, add a co
 		"content": [....]
 	}
 
-####stop(successCallback, errorCallback)
+#### stop(successCallback, errorCallback)
 
 Calling this will stop the current playlist and reset the player.
 
-####pause(successCallback, errorCallback)
+#### pause(successCallback, errorCallback)
 
 Calling this will pause playback temporarily, if the player was playing.
 
-####resume(successCallback, errorCallback)
+#### resume(successCallback, errorCallback)
 
 Calling this method will resume playback if it was paused.
 
-####getDuration(successCallback, errorCallback)
+#### getDuration(successCallback, errorCallback)
 
 Calling this method will return the duration, in ms, of the currently playing video, inside the successCallback function. If the duration is not currently available, 0 will be returned.
 
-####getBufferedTime(successCallback, errorCallback)
+#### getBufferedTime(successCallback, errorCallback)
 
 Calling this method will return the length of the buffer, in ms, inside the successCallback function. 
 
-####toggleFullscreen(successCallback, errorCallback)
+#### toggleFullscreen(successCallback, errorCallback)
 
 Calling this method will toggle full screen mode on and off.
 
-####mute(successCallback, errorCallback)
+#### mute(successCallback, errorCallback)
 
 This method will mute audio, if playback is running.
 
-####unMute(successCallback, errorCallback)
+#### unMute(successCallback, errorCallback)
 
 This method will unmute audio, if playback is running.
 
-####isPlaying(successCallback, errorCallback)
+#### isPlaying(successCallback, errorCallback)
 
 This method will call the successCallback method with "true" or "false", depending if the Veeplay player is currently rendering a video unit.
 
-####isSeeking(successCallback, errorCallback)
+#### isSeeking(successCallback, errorCallback)
 
 This method will call the successCallback method with "true" or "false", depending if the Veeplay player is currently processing a seek operation.
 
-####skip(successCallback, errorCallback)
+#### skip(successCallback, errorCallback)
 
 This method will stop the playback of the current unit and start playback of the next unit in the playlist.
 
-####back(successCallback, errorCallback)
+#### back(successCallback, errorCallback)
 
 This method will stop the playback of the current unit and start playback of the previous unit in the playlist.
 
-###Intercepting player events
+### Intercepting player events
 
 Veeplay emits a wide array of events that notify playback states, errors and user interactions. In order to intercept those events (for analytics tracking or for updating the UI, for example), use the following snippet:
 
@@ -145,13 +145,13 @@ The "result" variable is a Javascript object, with the following structure:
 * `seek_start` - if the event represents a seek, this should indicate when the seek has started
 * `playback_time` - the playback time when the event fired
 
-###Google cast usage
+### Google cast usage
 
 Google Cast device streaming is achieved via bridging the Veeplay Cast plugin through Cordova. Within the player container, a MediaRoute button is automatically injected whenever a Google Cast device is present.
 
 Due to the fact that the MediaRouter is dependent on the Google support library and the AppCompat versions of the Activity class, the setup is a little more complicated:
 
-####Project setup
+#### Project setup
 
 **A.** Add the following lines to the CordovaLib gradle file (located at *platforms/android/CordovaLib/build.gradle* in the root of your Cordova app):
 
@@ -174,7 +174,7 @@ Due to the fact that the MediaRouter is dependent on the Google support library 
 
 	android:theme="@style/Theme.AppCompat"
 
-####Integration instructions
+#### Integration instructions
 
 Within the deviceready callback (or wherever convenient, early in the application initialization flow), add the following method calls:
 
@@ -188,10 +188,10 @@ Within the deviceready callback (or wherever convenient, early in the applicatio
             "appId": "E8CDF951"
         });
 
-###Uninstall
+### Uninstall
 
     cordova plugin remove veeplay-cordova-plugin
 
-###Licensing
+### Licensing
 
 The Veeplay Cordova plugin is available as an open-source component, under the Apache 2.0 license. Usage of the Veeplay SDK however is dependant on having a valid Veeplay license (you can sign up for a trial license at https://panel.veeplay.com).
